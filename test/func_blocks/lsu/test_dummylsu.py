@@ -8,9 +8,9 @@ from transactron.utils import int_to_signed, signed_to_int
 from coreblocks.params import GenParams
 from coreblocks.func_blocks.fu.lsu.dummyLsu import LSUDummy
 from coreblocks.params.configurations import test_core_config
-from coreblocks.frontend.decoder import *
+from coreblocks.arch import *
 from coreblocks.interface.keys import ExceptionReportKey, InstructionPrecommitKey
-from transactron.utils.dependencies import DependencyManager
+from transactron.utils.dependencies import DependencyContext
 from coreblocks.interface.layouts import ExceptionRegisterLayouts, RetirementLayouts
 from coreblocks.peripherals.wishbone import *
 from transactron.testing import TestbenchIO, TestCaseWithSimulator, def_method_mock
@@ -82,7 +82,7 @@ class DummyLSUTestCircuit(Elaboratable):
             Adapter(i=self.gen.get(ExceptionRegisterLayouts).report)
         )
 
-        self.gen.get(DependencyManager).add_dependency(ExceptionReportKey(), self.exception_report.adapter.iface)
+        DependencyContext.get().add_dependency(ExceptionReportKey(), self.exception_report.adapter.iface)
 
         layouts = self.gen.get(RetirementLayouts)
         m.submodules.precommit = self.precommit = TestbenchIO(
@@ -93,7 +93,7 @@ class DummyLSUTestCircuit(Elaboratable):
                 combiner=lambda m, args, runs: args[0],
             ).set(with_validate_arguments=True)
         )
-        self.gen.get(DependencyManager).add_dependency(InstructionPrecommitKey(), self.precommit.adapter.iface)
+        DependencyContext.get().add_dependency(InstructionPrecommitKey(), self.precommit.adapter.iface)
 
         m.submodules.func_unit = func_unit = LSUDummy(self.gen, self.bus_master_adapter)
 
